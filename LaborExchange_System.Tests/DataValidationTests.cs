@@ -47,5 +47,33 @@ namespace LaborExchange_System.Tests
             // Assert
             Assert.IsFalse(isValidSalary, "Рівень заробітної плати не може бути від'ємним");
         }
+
+        [TestMethod]
+        public void PhoneNumber_ValidFormat_ReturnsTrue()
+        {
+            // Arrange
+            string validPhone = "+380501234567";
+            string pattern = @"^\+?380\d{9}$";
+
+            // Act
+            bool isValid = Regex.IsMatch(validPhone, pattern);
+
+            // Assert
+            Assert.IsTrue(isValid, "Коректний номер телефону має успішно проходити валідацію");
+        }
+
+        [TestMethod]
+        public void SalaryRange_ValidMinAndMax_ReturnsTrue()
+        {
+            // Arrange
+            decimal minSalary = 20000m;
+            decimal maxSalary = 35000m;
+
+            // Act
+            bool isValidRange = minSalary <= maxSalary && minSalary >= 0;
+
+            // Assert
+            Assert.IsTrue(isValidRange, "Мінімальна зарплата не може перевищувати максимальну або бути від'ємною");
+        }
     }
 }
