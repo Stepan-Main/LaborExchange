@@ -12,9 +12,9 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-	<DisableOutOfProcTaskHost>true</DisableOutOfProcTaskHost>
-	<ResGenExecuteAs32Bit>false</ResGenExecuteAs32Bit>
-	<PlatformTarget>AnyCPU</PlatformTarget>
+    <DisableOutOfProcTaskHost>true</DisableOutOfProcTaskHost>
+    <ResGenExecuteAs32Bit>false</ResGenExecuteAs32Bit>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -164,6 +164,7 @@
       <DependentUpon>SpecialistDetailsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GridDataLoaderService.cs" />
+    <Compile Include="Help\NewFeature.cs" />
     <Compile Include="References\EditReferencesForm.cs">
       <SubType>Form</SubType>
     </Compile>
