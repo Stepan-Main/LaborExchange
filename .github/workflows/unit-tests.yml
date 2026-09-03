@@ -1,0 +1,39 @@
+name: Build and Run Unit Tests
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+      - 'feature/*'
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup VSTest
+        uses: darenm/setup-vstest@v1.2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      - name: Restore NuGet packages
+        run: nuget restore LaborExchange_System.sln
+
+      - name: Build Solution
+        run: msbuild LaborExchange_System.sln /p:Configuration=Release
+
+      - name: Run Unit Tests
+        run: vstest.console.exe LaborExchange_System.Tests\bin\Release\LaborExchange_System.Tests.dll
