@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 namespace LaborExchange_System.Tests
 {
     [TestClass]
+    // Класс тестів для перевірки валідації даних у системі LaborExchange
     public class DataValidationTests
     {
         [TestMethod]
