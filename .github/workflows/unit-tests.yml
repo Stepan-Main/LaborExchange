@@ -1,0 +1,95 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, review_requested, submitted]
+    branches:
+      - develop
+
+jobs:
+  #Перевірка схвалення рев'ю перед злиттям
+  review-check:
+    name: Code Review Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Review Status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const approved = reviews.some(review => review.state === 'APPROVED');
+            if (!approved) {
+              core.setFailed("Код-рев'ю не схвалено! Потрібен статус APPROVED для злиття в develop.");
+            } else {
+              console.log("Код-рев'ю успішно схвалено.");
+            }
+
+  # Збірка, тести та аналіз Sonar
+  build-test-and-sonar:
+    name: Build, MSTest & Sonar Analysis
+    needs: review-check
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Потрібно для точного аналізу історії Sonar
+
+      - name: Setup Java (потрібно для Sonar)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup VSTest
+        uses: darenm/setup-vstest@v1.2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      - name: Install SonarScanner for .NET
+        shell: powershell
+        run: |
+          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+
+      - name: Restore NuGet packages
+        run: nuget restore LaborExchange_System.sln
+
+      # Сеесія Sonar
+      - name: Begin Sonar Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin `
+            /k:"LaborExchange_System" `
+            /o:"ВАШ_GITHUB_LOGIN" `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.host.url="https://sonarcloud.io"
+
+      # Компіляція розв'язку
+      - name: Build Solution
+        run: msbuild LaborExchange_System.sln /p:Configuration=Release
+
+      # Запуск MSTest із попередньої ЛР
+      - name: Run MSTest Unit Tests
+        run: vstest.console.exe LaborExchange_System.Tests\bin\Release\LaborExchange_System.Tests.dll
+
+      # Завершення аналізу та вивантаження результатів у Sonar
+      - name: End Sonar Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
