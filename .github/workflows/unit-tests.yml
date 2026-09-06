@@ -7,7 +7,7 @@ on:
       - develop
 
 jobs:
-  # 1. Перевірка схвалення рев'ю перед злиттям
+  # Перевірка схвалення рев'ю перед злиттям
   review-check:
     name: Code Review Check
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
               console.log("Код-рев'ю успішно схвалено.");
             }
 
-  # 2. Збірка, Cloc, MSTest та аналіз Sonar на Windows
+  # Збірка, Cloc, MSTest та аналіз Sonar на Windows
   build-test-and-sonar:
     name: Build, MSTest & Sonar Analysis
     needs: review-check
