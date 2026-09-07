@@ -8,6 +8,7 @@ on:
 
 jobs:
   # Перевірка схвалення рев'ю перед злиттям
+# Перевірка схвалення рев'ю перед злиттям
   review-check:
     name: Code Review Check
     runs-on: ubuntu-latest
@@ -17,20 +18,29 @@ jobs:
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
+            
+            // 1. Отримуємо офіційні рев'ю
             const { data: reviews } = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: prNumber
             });
-            // Дозволяємо як офіційний APPROVED, так і коментар зі словом APPROVE (для обходу обмеження на власний PR)
-            const approved = reviews.some(review => 
-              review.state === 'APPROVED' || 
-              (review.body && review.body.toUpperCase().includes('APPROVE'))
-            );
-            if (!approved) {
-              core.setFailed("Код-рев'ю не схвалено! Залиште схвалене рев'ю або коментар 'APPROVE'.");
+
+            // 2. Отримуємо текстові коментарі з PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            // Перевіряємо статус APPROVED або наявність слова APPROVE у коментарях чи рев'ю
+            const hasApprovedReview = reviews.some(r => r.state === 'APPROVED' || (r.body && r.body.toUpperCase().includes('APPROVE')));
+            const hasApprovedComment = comments.some(c => c.body && c.body.toUpperCase().includes('APPROVE'));
+
+            if (!hasApprovedReview && !hasApprovedComment) {
+              core.setFailed("Код-рев'ю не схвалено! Залиште коментар 'APPROVE' для злиття в develop.");
             } else {
-              console.log("Код-рев'ю успішно схвалено.");
+              console.log("Код-рев'ю успішно схвалено через APPROVE.");
             }
 
   # Збірка, Cloc, MSTest та аналіз Sonar на Windows
