@@ -101,7 +101,7 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin `
-            /k:"LaborExchange_System" `
+            /k:"Stepan-Main_LaborExchange" `
             /o:"stepan-main" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io"
