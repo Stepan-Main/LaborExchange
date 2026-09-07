@@ -78,3 +78,5 @@ namespace LaborExchange_System.Tests
         }
     }
 }
+
+// CI pipeline test trigger
